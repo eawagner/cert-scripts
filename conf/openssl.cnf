@@ -1,0 +1,79 @@
+HOME			= .
+RANDFILE		= $ENV::HOME/.rnd
+
+[ ca ]
+default_ca	= CA_default
+
+[ CA_default ]
+
+ca_certs_dir    = CA_certs
+dir             = tmp
+certs		= $dir/certs
+crl_dir		= $dir/crl
+database	= $dir/index.txt
+new_certs_dir	= $dir/newcerts
+certificate	= $ca_certs_dir/Dev_CA.crt
+serial		= $ca_certs_dir/Dev_CA.srl
+crlnumber	= $dir/crlnumber
+crl		= $dir/crl.pem
+private_key	= $ca_certs_dir/Dev_CA.key
+RANDFILE	= $dir/private/.rand
+x509_extensions	= usr_cert
+name_opt 	= ca_default
+cert_opt 	= ca_default
+default_days	= 3650
+default_crl_days= 30
+default_md	= sha1
+preserve	= no
+policy		= policy_match
+
+[ policy_match ]
+countryName		= match
+stateOrProvinceName	= match
+organizationName	= match
+organizationalUnitName	= optional
+commonName		= supplied
+emailAddress		= optional
+
+[ policy_anything ]
+countryName		= optional
+stateOrProvinceName	= optional
+localityName		= optional
+organizationName	= optional
+organizationalUnitName	= optional
+commonName		= supplied
+emailAddress		= optional
+
+[ req ]
+default_bits           = 2048
+default_keyfile        = keyfile.pem
+distinguished_name     = req_distinguished_name
+x509_extensions	= v3_ca	# The extentions to add to the self signed cert
+string_mask = nombstr
+prompt                 = no
+
+[ req_distinguished_name ]
+C                      = US
+ST                     = NY
+L                      = Somewhere
+O                      = Development
+OU                     = Test
+CN                     = localhost
+emailAddress           = localhost
+
+[ usr_cert ]
+basicConstraints=CA:FALSE
+subjectKeyIdentifier=hash
+authorityKeyIdentifier=keyid,issuer
+subjectAltName=email:copy
+
+#Uncomment line to move email to SubAltName
+#subjectAltName=email:move
+
+[ v3_ca ]
+
+subjectKeyIdentifier=hash
+authorityKeyIdentifier=keyid:always,issuer:always
+basicConstraints = CA:true
+#subjectAltName=email:copy
+issuerAltName=issuer:copy
