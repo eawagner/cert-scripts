@@ -5,8 +5,8 @@ source $(cd $(dirname ${BASH_SOURCE[0]}) && pwd)/common-funcs.sh
 # set some sane defaults
 SERVER_NAME=localhost
 DEFAULT_ALIAS=devcert
-KEYPASS=winter
-STOREPASS=winter
+KEYPASS=password
+STOREPASS=password
 KEYSTORE=${STORE_DIR}/development.keystore
 TRUSTSTORE=${STORE_DIR}/development.truststore
 
