@@ -10,14 +10,15 @@ init() {
 
     mkdir -p ${CERT_DIR}
 
-    if [ -f ${CERT_DIR}/server.jks ]; then
-        rm ${CERT_DIR}/server.jks
-    fi
 }
 
 gen-jks() {
 
-    #TODO generate dynamically
+    if [ -f ${CERT_DIR}/server.jks ]; then
+        rm ${CERT_DIR}/server.jks
+    fi
+
+    #Dynamically create a server DN from the openssl conf settings
     SERVER_DN="CN=${SERVER_NAME},OU=$(getConfValue OU),O=$(getConfValue O),L=$(getConfValue L),S=$(getConfValue ST),C=$(getConfValue C)"
     DEFAULT_ALIAS=devcert
 
