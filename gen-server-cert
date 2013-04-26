@@ -1,0 +1,119 @@
+#!/bin/bash
+
+source $(cd $(dirname ${BASH_SOURCE[0]}) && pwd)/common-func
+
+init() {
+    generalInit
+    # set username, email in conf file
+    setConfValue emailAddress "$SERVER_NAME@devcert.com"
+    setConfValue CN           "$SERVER_NAME"
+
+    mkdir -p ${CERT_DIR}
+
+    if [ -f ${CERT_DIR}/server.jks ]; then
+        rm ${CERT_DIR}/server.jks
+    fi
+}
+
+gen-jks() {
+
+    #TODO generate dynamically
+    SERVER_DN="CN=${SERVER_NAME},OU=$(getConfValue OU),O=$(getConfValue O),L=$(getConfValue L),S=$(getConfValue ST),C=$(getConfValue C)"
+    DEFAULT_ALIAS=devcert
+
+    echo "Generating new keystore ..."
+    keytool -genkeypair -validity 3650 -alias ${DEFAULT_ALIAS} -keysize 2048 -keyalg RSA -dname "${SERVER_DN}" \
+     -keypass ${KEYPASS} -keystore ${CERT_DIR}/server.jks \
+     -storepass ${KEYPASS}
+
+    #Import CAs.  
+    #First to establish chain for signing of dev CA 
+    #and two to allow for use as a truststore with additional CAs.
+    for file in ${CA_DIR}/*.crt; do
+	echo "Importing CA cert: $file ..."
+	ALIAS=$(basename "$file")
+	ALIAS=${ALIAS%%.*}
+        keytool -import -v -trustcacerts -alias ${ALIAS} -keystore ${CERT_DIR}/server.jks -file "${file}" -noprompt -storepass ${KEYPASS} 
+    done
+
+    echo "Signing keystore"
+    #Gen request for signing
+    keytool -certreq -v -alias ${DEFAULT_ALIAS} -keystore ${CERT_DIR}/server.jks -storepass ${KEYPASS} -file ${REQ_DIR}/server.req
+
+    #Sign with the dev CA
+    openssl ca -config ${CONF_FILE} -policy policy_anything -passin "pass:${DEFAULT_PASS}" -batch -out ${TMP_DIR}/server.crt -infiles ${REQ_DIR}/server.req
+
+    #convert to DER format
+    openssl x509 -in ${TMP_DIR}/server.crt -out ${TMP_DIR}/server.crt -outform DER
+
+    #import the signed cert back into keystore
+    keytool -importcert -v -alias ${DEFAULT_ALIAS} -keystore ${CERT_DIR}/server.jks -storepass ${KEYPASS} -keypass ${KEYPASS} -file ${TMP_DIR}/server.crt -noprompt
+    
+    #Print certificate
+    echo "#################################################################"
+    echo "## Certificate"
+    keytool -list -v -keystore ${CERT_DIR}/server.jks -storepass ${KEYPASS}
+}
+
+gen-pem() {
+
+    #Generate a new key and request
+    openssl req -config ${CONF_FILE} -newkey rsa:2048 -keyout ${KEY_DIR}/server.key -keyform PEM -out ${REQ_DIR}/server.req -outform PEM -passout "pass:${DEFAULT_PASS}" -days 3650
+
+    #Decrypt the key
+    openssl rsa -in ${KEY_DIR}/server.key -out ${CERT_DIR}/server.priv -passin "pass:${DEFAULT_PASS}"
+
+    #Sign the request with the CA
+    openssl ca -config ${CONF_FILE} -policy policy_anything -in ${REQ_DIR}/server.req -out ${CERT_DIR}/server.pub -passin "pass:${DEFAULT_PASS}" -batch
+
+    #Print certificate
+    echo "#################################################################"
+    echo "## Certificates"
+    cat ${CERT_DIR}/server.pub ${CERT_DIR}/server.priv 
+}
+
+usage() {
+    echo "usage: $0 [option]"
+    echo
+    echo "   Options:"
+    echo "      -s  <name>      Use the specified [s]ervername"
+    echo "      -p  <passwd>    Use the specified [p]assword"
+    echo "      -J              Generate a [J]KS certificate"
+    echo "      -P              Generate [P]EM certificates"
+    echo
+    exit 0
+}
+
+# process arguments overriding defaults as needed
+while getopts "s:p:JP" flag; do
+    case $flag in
+        s)
+            SERVER_NAME=$OPTARG
+            echo "Using servername: $SERVER_NAME"
+            ;;
+        p)
+            KEYPASS=$OPTARG
+            echo "Using password: $KEYPASS ..."
+            ;;
+        J)
+            ACTION=jks
+            echo "Generating a JKS certificate"
+            ;;
+        P)
+            ACTION=pem
+            echo "Generating PEM certificates"
+            ;;
+        *)
+            usage
+            ;;
+    esac
+done
+
+#Default values
+SERVER_NAME=${SERVER_NAME:-localhost}
+KEYPASS=${KEYPASS:-changeit}
+ACTION=${ACTION:-jks}
+
+init
+gen-${ACTION}
+generalCleanup

@@ -1,0 +1,66 @@
+CERT_ROOT_DIR=$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)
+
+#Default CA
+CA_NAME=Dev_CA
+CA_DIR=${CERT_ROOT_DIR}/CA_certs
+
+#Default password
+#must be longer than 4 characters
+DEFAULT_PASS=pass 
+
+#Conf Location
+CONF_FILE=${CERT_ROOT_DIR}/conf/openssl.cnf
+
+#Output Location
+CERT_DIR=${CERT_ROOT_DIR}/certs
+
+#Temp Locations
+TMP_DIR=${CERT_ROOT_DIR}/tmp
+KEY_DIR=${TMP_DIR}/keys
+REQ_DIR=${TMP_DIR}/reqs
+
+getConfValue() {
+    fld_name=$1
+    grep "^${fld_name}\([ ]*[=]\)[ ]*.*" conf/openssl.cnf | awk -F '=' '{print $2}' | sed -e 's/^ *//g' -e 's/ *$//g'
+}
+
+setConfValue() {
+    fld_name=$1
+    fld_val=$2
+
+    if test ! -f "${CONF_FILE}"; then
+        echo "Invalid File specified in setConfValue(): ${CONF_FILE}"
+        return 3
+    fi
+
+    sed -i -e "s#^${fld_name}\([ ]*[=]\)[ ]*.*#${fld_name}\1 ${fld_val}#" ${CONF_FILE}
+
+}
+
+initTmp() {
+    #Creates all the temp directories for cert management
+    mkdir -p ${KEY_DIR}
+    mkdir -p ${REQ_DIR}
+    mkdir -p ${TMP_DIR}/newcerts
+    touch ${TMP_DIR}/index.txt
+}
+
+generalInit() {
+    
+    initTmp  
+
+    mkdir -p ${CA_DIR}
+
+    #Generate a random 20 character hex string for a serial, to be used for signing
+    echo $(printf "%04X%04X%04X%04X%04X" ${RANDOM} ${RANDOM} ${RANDOM} ${RANDOM} ${RANDOM}) > ${TMP_DIR}/${CA_NAME}.srl
+
+    setConfValue ca_certs_dir ${CA_DIR}
+    setConfValue dir ${TMP_DIR}
+}
+
+
+generalCleanup() {
+
+    rm -rf ${TMP_DIR}
+
+}

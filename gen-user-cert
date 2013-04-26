@@ -1,0 +1,72 @@
+#!/bin/bash
+
+source $(cd $(dirname ${BASH_SOURCE[0]}) && pwd)/common-func
+
+escapeName() {
+    echo "$1" | sed -e 's/[ ]//g' | sed -e 's/[.]/_/g' | tr "[:upper:]" "[:lower:]"
+}
+
+init() {
+    generalInit
+    # set username, email in conf file
+    setConfValue emailAddress "$USER_EMAIL"
+    setConfValue CN           "$USER_NAME"
+
+    mkdir -p ${CERT_DIR}
+}
+
+gen-p12() {
+    
+    
+ 
+    #From CA.pl
+    #Generate request file and private key
+    openssl req -config ${CONF_FILE} -new -keyout ${KEY_DIR}/user.key -out ${REQ_DIR}/user.req -days 3650 -passout "pass:${DEFAULT_PASS}"
+
+    #Sign request and generate certificate
+    openssl ca -config ${CONF_FILE} -policy policy_anything -passin "pass:${DEFAULT_PASS}" -batch -out ${TMP_DIR}/user.crt -infiles ${REQ_DIR}/user.req
+
+    #convert certificate to pksc12
+    openssl pkcs12 -in ${TMP_DIR}/user.crt -inkey ${KEY_DIR}/user.key -certfile ${CA_DIR}/${CA_NAME}.crt -out ${CERT_DIR}/user.p12 -export -name "${USER_NAME}" -passin "pass:${DEFAULT_PASS}" -password "pass:"
+    
+}
+
+usage() {
+    echo
+    echo " Usage: "
+    echo
+    echo " Generate a user cert: $(basename $0) -u user -e email"
+    echo
+    echo "   Options:"
+    echo "      -u  <user>  Use the specified username"
+    echo "      -e  <email> Use the specified user e-mail"
+    echo
+    exit 0
+}
+
+while getopts "u:e:hTn:" flag; do
+    case $flag in
+        u)
+            USER_NAME=$OPTARG
+            echo "Using cert user: $USER_NAME"
+            ;;
+        e)
+            USER_EMAIL=$OPTARG
+            echo "Using cert e-mail: $USER_EMAIL ..."
+            ;;
+        *)
+            usage
+            ;;
+    esac
+done
+
+#Default values
+USER_NAME=${USER_NAME:-user}
+USER_EMAIL=${USER_EMAIL:-$(escapeName ${USER_NAME})@devcert.com}
+ACTION=${ACTION:-p12}
+
+### MAIN ###
+
+init
+gen-${ACTION}
+generalCleanup
