@@ -22,7 +22,7 @@ Now you can create server and user certificates which will be recognized by all 
 Creating server certificates
 ===========
 
-To generate a JKS
+To generate a JKS (Default pass is "changeit")
 
 ./gen-server-cert -J
 

@@ -52,7 +52,7 @@ generalInit() {
     mkdir -p ${CA_DIR}
 
     #Generate a random 20 character hex string for a serial, to be used for signing
-    echo $(printf "%04X%04X%04X%04X%04X" ${RANDOM} ${RANDOM} ${RANDOM} ${RANDOM} ${RANDOM}) > ${TMP_DIR}/${CA_NAME}.srl
+    echo $(printf "%04X%04X%04X%04X%04X" ${RANDOM} ${RANDOM} ${RANDOM} ${RANDOM} ${RANDOM}) > ${TMP_DIR}/serial.srl
 
     setConfValue ca_certs_dir ${CA_DIR}
     setConfValue dir ${TMP_DIR}
