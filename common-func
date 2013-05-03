@@ -18,6 +18,7 @@ CERT_DIR=${CERT_ROOT_DIR}/certs
 TMP_DIR=${CERT_ROOT_DIR}/tmp
 KEY_DIR=${TMP_DIR}/keys
 REQ_DIR=${TMP_DIR}/reqs
+WORKING_CONF=${TMP_DIR}/openssl.conf
 
 getConfValue() {
     fld_name=$1
@@ -28,12 +29,12 @@ setConfValue() {
     fld_name=$1
     fld_val=$2
 
-    if test ! -f "${CONF_FILE}"; then
-        echo "Invalid File specified in setConfValue(): ${CONF_FILE}"
+    if test ! -f "${WORKING_CONF}"; then
+        echo "No configuration file found: ${WORKING_CONF}"
         return 3
     fi
 
-    sed -i -e "s#^${fld_name}\([ ]*[=]\)[ ]*.*#${fld_name}\1 ${fld_val}#" ${CONF_FILE}
+    sed -i -e "s#^${fld_name}\([ ]*[=]\)[ ]*.*#${fld_name}\1 ${fld_val}#" ${WORKING_CONF}
 
 }
 
@@ -43,6 +44,7 @@ initTmp() {
     mkdir -p ${REQ_DIR}
     mkdir -p ${TMP_DIR}/newcerts
     touch ${TMP_DIR}/index.txt
+    cp ${CONF_FILE} ${WORKING_CONF}
 }
 
 generalInit() {

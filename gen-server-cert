@@ -42,7 +42,7 @@ gen-jks() {
     keytool -certreq -v -alias ${DEFAULT_ALIAS} -keystore ${CERT_DIR}/server.jks -storepass ${KEYPASS} -file ${REQ_DIR}/server.req
 
     #Sign with the dev CA
-    openssl ca -config ${CONF_FILE} -policy policy_anything -passin "pass:${DEFAULT_PASS}" -batch -out ${TMP_DIR}/server.crt -infiles ${REQ_DIR}/server.req
+    openssl ca -config ${WORKING_CONF} -policy policy_anything -passin "pass:${DEFAULT_PASS}" -batch -out ${TMP_DIR}/server.crt -infiles ${REQ_DIR}/server.req
 
     #convert to DER format
     openssl x509 -in ${TMP_DIR}/server.crt -out ${TMP_DIR}/server.crt -outform DER
@@ -59,13 +59,13 @@ gen-jks() {
 gen-pem() {
 
     #Generate a new key and request
-    openssl req -config ${CONF_FILE} -newkey rsa:2048 -keyout ${KEY_DIR}/server.key -keyform PEM -out ${REQ_DIR}/server.req -outform PEM -passout "pass:${DEFAULT_PASS}" -days 3650
+    openssl req -config ${WORKING_CONF} -newkey rsa:2048 -keyout ${KEY_DIR}/server.key -keyform PEM -out ${REQ_DIR}/server.req -outform PEM -passout "pass:${DEFAULT_PASS}" -days 3650
 
     #Decrypt the key
     openssl rsa -in ${KEY_DIR}/server.key -out ${CERT_DIR}/server.priv -passin "pass:${DEFAULT_PASS}"
 
     #Sign the request with the CA
-    openssl ca -config ${CONF_FILE} -policy policy_anything -in ${REQ_DIR}/server.req -out ${CERT_DIR}/server.pub -passin "pass:${DEFAULT_PASS}" -batch
+    openssl ca -config ${WORKING_CONF} -policy policy_anything -in ${REQ_DIR}/server.req -out ${CERT_DIR}/server.pub -passin "pass:${DEFAULT_PASS}" -batch
 
     #Print certificate
     echo "#################################################################"
