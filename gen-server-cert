@@ -14,13 +14,13 @@ init() {
 
 gen-jks() {
 
+    DEFAULT_ALIAS=devcert
+
     if [ -f ${CERT_DIR}/server.jks ]; then
         rm ${CERT_DIR}/server.jks
     fi
 
-    #Dynamically create a server DN from the openssl conf settings
     SERVER_DN="CN=${SERVER_NAME},OU=$(getConfValue OU),O=$(getConfValue O),L=$(getConfValue L),S=$(getConfValue ST),C=$(getConfValue C)"
-    DEFAULT_ALIAS=devcert
 
     echo "Generating new keystore ..."
     keytool -genkeypair -validity 3650 -alias ${DEFAULT_ALIAS} -keysize 2048 -keyalg RSA -dname "${SERVER_DN}" \
