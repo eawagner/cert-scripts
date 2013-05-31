@@ -22,7 +22,7 @@ WORKING_CONF=${TMP_DIR}/openssl.conf
 
 getConfValue() {
     fld_name=$1
-    grep "^${fld_name}\([ ]*[=]\)[ ]*.*" conf/openssl.cnf | awk -F '=' '{print $2}' | sed -e 's/^ *//g' -e 's/ *$//g'
+    grep "^${fld_name}\([ ]*[=]\)[ ]*.*" ${WORKING_CONF} | awk -F '=' '{print $2}' | sed -e 's/^ *//g' -e 's/ *$//g'
 }
 
 setConfValue() {
