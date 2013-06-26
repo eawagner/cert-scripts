@@ -5,7 +5,7 @@ Scripts for quick and easy generation of ssl certificates for a development envi
 
 WARNING!!!!
 ===========
-These scripts should only be used in a development environment.  These scripts rely on an untrustworthy CA by default as the private key is fully visible.  They also intentionally cleanup any history which makes it impossible to revoke certificates or track history.
+These scripts should only be used in a development environment.  These scripts rely on an unguarded CA by default as the private key is fully visible.  They also intentionally cleanup any history which makes it impossible to revoke certificates or track history.
 
 Getting Started
 ===========
