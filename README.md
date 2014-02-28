@@ -39,7 +39,7 @@ Use the -h option to get a full usage description
 Creating user certificates
 ===========
 
-When using mutual authentication on an application it is important to be able to generate user certificates.  It is possible to generate a P12 file using the following command:
+When using mutual authentication on an application it is important to be able to generate user certificates.  It is possible to generate a P12 file using the following command. Password is left blank:
 
 ./gen-user-cert
 
